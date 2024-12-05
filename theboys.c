@@ -8,6 +8,13 @@
 #include "fprio.h"
 #include "conjunto.h"
 // seus #defines vão aqui
+#define T_INICIO 0
+#define T_FIM_DO_MUNDO 525600
+#define N_TAMANHO_MUNDO 20000
+#define N_HABILIDADES 10
+#define N_HEROIS (N_HABILIDADES * 5)
+#define N_BASES (N_HEROIS /5)
+#define N_MISSOES (T_FIM_DO_MUNDO / 10)
 #define CHEGA 0
 #define ESPERA 1
 #define DESISTE 2
@@ -114,14 +121,14 @@ int aleat (int min, int max){
 
 
 void iniciarMundo(struct mundo *mundo_ini, struct mundo *mundo_fim){
-    mundo_ini->Relogio = 0;
-    mundo_fim->Relogio = 525600;
-    mundo_ini->Tam_Mundo.x = 20000;
-    mundo_ini->Tam_Mundo.y = 20000;
-    mundo_ini->N_habilidades = 10;
-    mundo_ini->N_herois = mundo_ini->N_habilidades * 5;
-    mundo_ini->N_bases = mundo_ini->N_herois / 5;
-    mundo_ini->N_missoes = mundo_fim->Relogio / 100;
+    mundo_ini->Relogio = T_INICIO;
+    mundo_fim->Relogio = T_FIM_DO_MUNDO;
+    mundo_ini->Tam_Mundo.x = N_TAMANHO_MUNDO;
+    mundo_ini->Tam_Mundo.y = N_TAMANHO_MUNDO;
+    mundo_ini->N_habilidades = N_HABILIDADES;
+    mundo_ini->N_herois = N_HEROIS;
+    mundo_ini->N_bases = N_BASES;
+    mundo_ini->N_missoes = N_MISSOES;
 }
 
 void iniciarHabilidade(struct s_heroi* heroi, int numHabilidades){
@@ -152,7 +159,7 @@ void iniciarHerois(struct mundo * mundo_ini){
   if(mundo_ini->herois == NULL){
     return;
   }
-  for(int i = 0; i < mundo_ini->N_herois; i++){
+  for(int i = 0; i < N_HEROIS; i++){
     mundo_ini->herois[i].ID = i;
     mundo_ini->herois[i].experiencia = 0;
     mundo_ini->herois[i].paciencia = aleat(0,100);
@@ -165,7 +172,7 @@ void iniciarBase(struct mundo *mundo_ini){
   mundo_ini->bases = (struct base*)malloc(mundo_ini->N_bases * sizeof(struct base));
   if(mundo_ini->bases == NULL)
     return;
-  for(int i = 0; i , mundo_ini->N_bases; i ++){
+  for(int i = 0; i < N_BASES; i ++){
     mundo_ini->bases[i].ID = i;
     mundo_ini->bases[i].local.x = aleat(0,mundo_ini->Tam_Mundo.x-1);
     mundo_ini->bases[i].local.x = aleat(0,mundo_ini->Tam_Mundo.y-1);
@@ -191,13 +198,14 @@ void iniciarMissao(struct mundo *mundo_ini){
 void Chega(int instante, struct s_heroi *herois, struct base *base, struct fprio_t *LEF){
   bool espera;
   herois->base = base->ID;
-  if((base->presentes->num < base->lotação) && (base->espera == NULL)){
+  if((cjto_card(base->presentes) < base->lotação) && (base->espera == NULL)){
     espera = true;
   } else {
     espera = (herois->paciencia) > (10 * base->espera->tamanho);
   }
 
   struct evento *novo_evento;
+  novo_evento = malloc(sizeof(struct evento));
   novo_evento->base_ID = base->ID;
   novo_evento->heroi_ID = herois->ID;
   novo_evento->prio = instante;
@@ -210,10 +218,46 @@ void Chega(int instante, struct s_heroi *herois, struct base *base, struct fprio
 }
 
 void Espera(int instante, struct s_heroi *herois, struct base *base, struct fprio_t *LEF){
-  lista_insere(base->espera, herois, base->espera->ult);
+  lista_insere(base->espera, herois->ID, -1);
   struct evento *novo_evento;
+  novo_evento = malloc(sizeof(struct evento));
   novo_evento->base_ID = base->ID;
   novo_evento->heroi_ID = herois->ID;
   novo_evento->prio = instante;
   fprio_insere(LEF, novo_evento, AVISA, instante);
+}
+
+void Desiste(int instante, struct s_heroi *herois, struct base *base, struct fprio_t *LEF){
+  int destino = aleat(0,N_BASES);
+  struct evento *novo_evento;
+  novo_evento = malloc(sizeof(struct evento));
+  novo_evento->heroi_ID = herois->ID;
+  novo_evento->base_ID = destino;
+  novo_evento->prio = instante;
+  fprio_insere(LEF,novo_evento, VIAJA, instante);
+}
+
+void Avisa(int instante, struct base *base, struct fprio_t *LEF){
+
+  while(cjto_card(base->presentes) < base->lotação && base->espera->tamanho > 0){
+      int id_heroi;
+      lista_retira(base->espera, &id_heroi ,0);
+      cjto_insere(base->presentes, id_heroi);
+      struct evento *novo_evento;
+      novo_evento = malloc(sizeof(struct evento));
+      novo_evento->base_ID = base->ID ;
+      novo_evento->heroi_ID = id_heroi;
+      novo_evento->prio = instante;
+      fprio_insere(LEF,novo_evento,ENTRA,instante);
+  }
+}
+
+void Entra(int instante, struct s_heroi *heroi, struct base *base, struct fprio_t *LEF){
+  int PTB = 15 + (heroi->paciencia * aleat(1,20));
+  struct evento *novo_evento;
+  novo_evento = malloc(sizeof(struct evento));
+  novo_evento->base_ID = base->ID;
+  novo_evento->heroi_ID = heroi->ID;
+  novo_evento->prio = instante;
+  fprio_insere(LEF,novo_evento,SAI,instante + PTB); 
 }
