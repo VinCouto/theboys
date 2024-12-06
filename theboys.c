@@ -4,6 +4,7 @@
 // seus #includes vão aqui
 #include <stdio.h>
 #include <stdlib.h>
+#include <math.h>
 #include "lista.h"
 #include "fprio.h"
 #include "conjunto.h"
@@ -28,6 +29,10 @@
 
 // minimize o uso de variáveis globais
 
+struct bmp{
+  int dist;
+  int id_base;
+};
 
 struct evento{
   int heroi_ID;
@@ -48,7 +53,8 @@ struct s_heroi{
  int paciencia;
  int velocidade;
  int experiencia;
- int base;
+ int base_ID;
+ bool morto;
 };
 
 struct base{
@@ -105,6 +111,8 @@ int main (){
   iniciarBase(mundo_ini);
   iniciarMissao(mundo_ini);
   struct fprio_t *LEF = fprio_cria();
+  //eventos iniciais
+  ev_ini_herois(mundo_ini->herois,LEF);
   // executar o laço de simulação
 
   // destruir o mundo
@@ -114,7 +122,7 @@ int main (){
 
 //randomizador dos numeros que preencherão o vetor
 int aleat (int min, int max){
-  return ((rand()%max + 1));
+  return (rand()%(max - min + 1) + 1);
 }
 
 
@@ -165,6 +173,7 @@ void iniciarHerois(struct mundo * mundo_ini){
     mundo_ini->herois[i].paciencia = aleat(0,100);
     mundo_ini->herois[i].velocidade = aleat(50,5000);
     iniciarHabilidade(&mundo_ini->herois[i],mundo_ini->N_habilidades);
+    mundo_ini->herois[i].morto = false;
   }
 }
 
@@ -195,9 +204,27 @@ void iniciarMissao(struct mundo *mundo_ini){
   }
 }
 
+
+void ev_ini_herois(struct s_heroi *heroi, struct fprio_t *LEF){
+  for(int i = 0; i < N_HEROIS; i++){
+    heroi[i].base_ID = aleat(0,N_BASES-1);
+    int tempo = aleat(0,4320);
+    struct evento *novo_evento;
+    novo_evento = malloc(sizeof(struct evento*));
+    novo_evento->base_ID = heroi[i].base_ID;
+    novo_evento->heroi_ID = heroi[i].ID;
+    novo_evento->prio = tempo;
+    fprio_insere(LEF,novo_evento,CHEGA,tempo);
+  }
+}
+
 void Chega(int instante, struct s_heroi *herois, struct base *base, struct fprio_t *LEF){
+  if (herois->morto == true){
+    return;
+  }
   bool espera;
-  herois->base = base->ID;
+  herois->base_ID = base->ID;
+
   if((cjto_card(base->presentes) < base->lotação) && (base->espera == NULL)){
     espera = true;
   } else {
@@ -205,7 +232,7 @@ void Chega(int instante, struct s_heroi *herois, struct base *base, struct fprio
   }
 
   struct evento *novo_evento;
-  novo_evento = malloc(sizeof(struct evento));
+  novo_evento = malloc(sizeof(struct evento*));
   novo_evento->base_ID = base->ID;
   novo_evento->heroi_ID = herois->ID;
   novo_evento->prio = instante;
@@ -218,9 +245,12 @@ void Chega(int instante, struct s_heroi *herois, struct base *base, struct fprio
 }
 
 void Espera(int instante, struct s_heroi *herois, struct base *base, struct fprio_t *LEF){
+  if(herois->morto == true){
+    return;
+  }  
   lista_insere(base->espera, herois->ID, -1);
   struct evento *novo_evento;
-  novo_evento = malloc(sizeof(struct evento));
+  novo_evento = malloc(sizeof(struct evento*));
   novo_evento->base_ID = base->ID;
   novo_evento->heroi_ID = herois->ID;
   novo_evento->prio = instante;
@@ -228,9 +258,15 @@ void Espera(int instante, struct s_heroi *herois, struct base *base, struct fpri
 }
 
 void Desiste(int instante, struct s_heroi *herois, struct base *base, struct fprio_t *LEF){
+  if(herois->morto == true){
+    return;
+  }
   int destino = aleat(0,N_BASES);
+  while(destino == base->ID){
+    destino = aleat(0,N_BASES);
+  }
   struct evento *novo_evento;
-  novo_evento = malloc(sizeof(struct evento));
+  novo_evento = malloc(sizeof(struct evento*));
   novo_evento->heroi_ID = herois->ID;
   novo_evento->base_ID = destino;
   novo_evento->prio = instante;
@@ -238,13 +274,12 @@ void Desiste(int instante, struct s_heroi *herois, struct base *base, struct fpr
 }
 
 void Avisa(int instante, struct base *base, struct fprio_t *LEF){
-
   while(cjto_card(base->presentes) < base->lotação && base->espera->tamanho > 0){
       int id_heroi;
       lista_retira(base->espera, &id_heroi ,0);
       cjto_insere(base->presentes, id_heroi);
       struct evento *novo_evento;
-      novo_evento = malloc(sizeof(struct evento));
+      novo_evento = malloc(sizeof(struct evento*));
       novo_evento->base_ID = base->ID ;
       novo_evento->heroi_ID = id_heroi;
       novo_evento->prio = instante;
@@ -253,11 +288,100 @@ void Avisa(int instante, struct base *base, struct fprio_t *LEF){
 }
 
 void Entra(int instante, struct s_heroi *heroi, struct base *base, struct fprio_t *LEF){
+  if(heroi->morto == true){
+    return;
+  }
   int PTB = 15 + (heroi->paciencia * aleat(1,20));
   struct evento *novo_evento;
-  novo_evento = malloc(sizeof(struct evento));
+  novo_evento = malloc(sizeof(struct evento*));
   novo_evento->base_ID = base->ID;
   novo_evento->heroi_ID = heroi->ID;
   novo_evento->prio = instante;
   fprio_insere(LEF,novo_evento,SAI,instante + PTB); 
+}
+
+void Sai(int instante, struct s_heroi *heroi, struct base *base, struct fprio_t *LEF){
+  if(heroi->morto == true){
+    return;
+  }
+  cjto_retira(base->presentes, heroi->ID);
+  int destino = aleat(0,N_BASES);
+  struct evento *novo_evento;
+  novo_evento = malloc(sizeof(struct evento*));
+  novo_evento->heroi_ID = heroi->ID;
+  novo_evento->base_ID = destino;
+  novo_evento->prio = instante;
+  fprio_insere(LEF,novo_evento,VIAJA,instante);
+  novo_evento->base_ID = base->ID;
+  fprio_insere(LEF,novo_evento,AVISA,instante);
+}
+
+int DistanciaCart(struct coord atual, struct coord dest){
+  int x = (dest.x - atual.x) * (dest.x - atual.x);
+  int y = (dest.y - atual.y) * (dest.y - atual.y);
+  int result = (int)sqrt(x + y);
+  return result;
+}
+
+void Viaja(int instante, struct s_heroi *heroi, struct base *base, struct fprio_t *LEF){
+  if(heroi->morto == true){
+    return;
+  }
+  int atual = heroi->base_ID;
+  int distancia = DistanciaCart(base[atual].local, base->local);
+  int duração = distancia / heroi->velocidade;
+  struct evento *novo_evento;
+  novo_evento = malloc(sizeof(struct evento*));
+  novo_evento->base_ID = base->ID;
+  novo_evento->heroi_ID = heroi->base_ID;
+  novo_evento->prio = instante + duração;
+  fprio_insere(LEF,novo_evento,CHEGA,instante = duração);
+}
+
+void Morre(int instante, struct s_heroi *heroi, struct base *base, struct fprio_t *LEF){
+  cjto_retira(base->presentes, heroi->base_ID);
+  heroi->morto = true;
+  struct evento *novo_evento;
+  novo_evento = malloc(sizeof(struct evento*));
+  novo_evento->base_ID = base->ID;
+  novo_evento->prio = instante;
+  fprio_insere(LEF,novo_evento, AVISA, instante);
+}
+
+
+int insertionSort(struct bmp vetor[]) {  
+  for(int i = 1; i < N_BASES; i++){
+    struct bmp atual = vetor[i];
+    int j = i - 1;
+
+    while(j >= 0 && vetor[j].dist > atual.dist){
+      vetor[j + 1] = vetor[j];
+      j--;
+    }
+    vetor[j+1] = atual;
+  }
+}
+
+//funcao que recebe a struct missao e struct base e calcula qual a base
+//mais proxima da missao e as ordena em um vetor
+struct bmp* calcularBMP(struct missao *missao, struct base *base){
+  struct bmp *bmp;
+  bmp = malloc(N_BASES * sizeof(bmp));
+  if(bmp == NULL)
+    return;
+  for(int i = 0; i < N_BASES; i++){
+    int dist = DistanciaCart(missao->local,base[i].local);    
+    bmp[i].dist = dist;
+    bmp[i].id_base = base[i].ID;
+  }
+  bmp = insertionSort(bmp);
+  return bmp;
+}
+
+
+
+void Missao(int instante, struct missao *missao, struct base *base, struct fprio_t *LEF){
+  struct bmp *bmp;
+  bmp = calcularBMP(missao,base);
+
 }
