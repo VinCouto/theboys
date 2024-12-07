@@ -8,11 +8,11 @@ MAIN    = theboys
 ENTREGA = $(MAIN)
 
 # lista de arquivos de cabeçalho (a completar)
-HDR = lista.h fprio.h conjunto.h
+HDR = lista.h fprio.h conjunto.h mundo.h
 
 # lista de arquivos-objeto (a completar)
 # não inclua conjunto.o, senão ele será removido com "make clean"
-OBJ = lista.o fprio.o theboys.o
+OBJ = lista.o fprio.o theboys.o inicializa.o funcoes.o
 
 # construir o executável
 $(MAIN): $(MAIN).o $(OBJ) conjunto.o
@@ -30,7 +30,7 @@ run: $(MAIN)
 
 # testar no Valgrind
 valgrind: $(MAIN)
-	valgrind --leak-check=full --track-origins=yes ./$(MAIN)
+	valgrind -s --leak-check=full --track-origins=yes ./$(MAIN)
 
 # gerar arquivo TGZ para entregar
 tgz: clean
