@@ -63,7 +63,8 @@ struct base *iniciarBase(struct mundo *mundo_ini){
     mundo_ini->bases[i].lotação = aleat(3,10);
     mundo_ini->bases[i].presentes = cjto_cria(mundo_ini->bases[i].lotação);
     mundo_ini->bases[i].espera = lista_cria();
-    mundo_ini->bases[i].habilidades = cjto_cria(mundo_ini->bases[i].lotação);
+    mundo_ini->bases[i].habilidades = cjto_cria(30);
+    mundo_ini->bases[i].n_missao = 0;
   }
   return mundo_ini->bases;
 }
@@ -78,6 +79,7 @@ struct missao *iniciarMissao(struct mundo *mundo_ini){
     mundo_ini->missoes[i].localy = aleat(0,mundo_ini->Tam_Mundoy-1);
     iniciarHabilidadeMissao(&mundo_ini->missoes[i], mundo_ini->N_missoes);
     mundo_ini->missoes[i].N_perigo = aleat(0,100);
+    mundo_ini->missoes->tent = 0;
   }
   return mundo_ini->missoes;
 }

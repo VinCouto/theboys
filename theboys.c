@@ -19,32 +19,89 @@
 int main (){
   // iniciar o mundo
   printf("antes do malloc");
-  struct mundo *mundo_ini;
-  mundo_ini = malloc(sizeof(struct mundo));
-  if(mundo_ini == NULL)
+  struct mundo *mundo;
+  mundo = malloc(sizeof(struct mundo));
+  if(mundo == NULL)
     return 0;
   printf("dps do malloc");
   printf("antes do incializa\n");
-  iniciarMundo(mundo_ini);
-  mundo_ini->herois = iniciarHerois(mundo_ini);
-  mundo_ini->bases = iniciarBase(mundo_ini);
-  mundo_ini->missoes = iniciarMissao(mundo_ini);
+  iniciarMundo(mundo);
+  mundo->herois = iniciarHerois(mundo);
+  printf("INICIALIZOU HEROI\n");
+  mundo->bases = iniciarBase(mundo);
+  printf("INICIALIZOU BASE\n");
+  mundo->missoes = iniciarMissao(mundo);
+  printf("INICIALIZOU MISSAO\n");
   struct fprio_t *LEF = fprio_cria();
-  printf("num herois %2d", N_HEROIS);
-  Chega(0,mundo_ini,0,2,LEF);
-  Chega(0,mundo_ini,2,2,LEF);
-  Espera(0,mundo_ini,0,2,LEF);
-  Desiste(1,mundo_ini,2,2,LEF);
-  Avisa(1,mundo_ini,2,LEF);
-  Entra(2,mundo_ini,0,3,LEF);
-  Sai(3,mundo_ini,0,2,LEF);
-  Viaja(3,mundo_ini,0,4,LEF);
+  printf("CRIOU FILA\n");
+  
+
+  int tempo;
+  int tipo;
+  struct evento *evento;
+  evento = malloc(sizeof(struct evento));
+  if(evento == NULL)
+    return 0;
+  ev_ini_herois(mundo->herois,LEF);
+  ev_fim_do_mundo(LEF);
+
   //eventos iniciais
   printf("dps de td parabens vc n é tao burro");
   // executar o laço de simulação
+  while(mundo->Relogio <= T_FIM_DO_MUNDO){
+    evento = fprio_retira(LEF,&tipo,&tempo);
+
+    mundo->ev_trat++;
+    switch (tipo){
+      
+      case CHEGA:
+        Chega(tempo,mundo,evento->heroi_ID,evento->base_ID,LEF);
+        break;
+      
+      case ESPERA:
+        Espera(tempo,mundo,evento->heroi_ID,evento->base_ID,LEF);
+        break;
+      
+      case DESISTE:
+        Desiste(tempo,mundo,evento->heroi_ID,evento->base_ID,LEF);
+        break;
+
+      case AVISA:
+        Avisa(tempo, mundo, evento->base_ID,LEF);
+        break;
+
+      case ENTRA:
+        Entra(tempo, mundo, evento->heroi_ID, evento->base_ID, LEF);
+        break;
+
+      case SAI:
+        Sai(tempo, mundo, evento->heroi_ID, evento->base_ID, LEF);
+        break;
+
+      case VIAJA:
+        Viaja(tempo, mundo, evento->heroi_ID, evento->base_ID, LEF);
+        break;
+
+      case MORRE:
+        Morre(tempo, mundo, evento->heroi_ID, evento->base_ID, 
+        evento->missao_ID,LEF);
+        break;
+
+      case MISSAO:
+        break;
+
+      case FIM:
+        Fim(tempo, mundo);
+        break;
+
+      default:
+        break;
+    }
+    mundo->Relogio++;
+    free(evento);
+  }
 
   // destruir o mundo
-  Fim(mundo_ini);
   return (0);
 }
 

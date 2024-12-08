@@ -6,12 +6,13 @@
 #include "conjunto.h"
 
 #define T_INICIO 0
-#define T_FIM_DO_MUNDO 525600
+#define T_FIM_DO_MUNDO 525600/1000
 #define N_TAMANHO_MUNDO 20000
 #define N_HABILIDADES 10
 #define N_HEROIS (N_HABILIDADES * 5)
 #define N_BASES (N_HEROIS /5)
 #define N_MISSOES (T_FIM_DO_MUNDO / 100)
+
 #define CHEGA 0
 #define ESPERA 1
 #define DESISTE 2
@@ -51,6 +52,7 @@ struct base{
   struct lista_t *espera;
   int localx;
   int localy;
+  int n_missao;
   struct cjto_t *habilidades;
 };
 
@@ -60,6 +62,7 @@ struct missao{
   int N_perigo;
   int localx;
   int localy;
+  int tent;
 };
 
 struct mundo{
@@ -73,6 +76,7 @@ struct mundo{
   int Tam_Mundox;
   int Tam_Mundoy;
   int Relogio;
+  int ev_trat;
 };
 
 int aleat (int min, int max);
@@ -93,6 +97,10 @@ void agendarevento(struct fprio_t *LEF, int tipo, int T, int H, int B, int M);
 
 void ev_ini_herois(struct s_heroi *heroi, struct fprio_t *LEF);
 
+void ev_ini_missoes(struct missao *missao, struct fprio_t *LEF);
+
+void ev_fim_do_mundo(struct fprio_t *LEF);
+
 void Chega(int instante, struct mundo *M, int H, int B, struct fprio_t *LEF);
 
 void Espera(int instante, struct mundo *M, int H, int B, struct fprio_t *LEF);
@@ -109,8 +117,8 @@ int DistanciaCart(int atualx, int atualy, int destx, int desty);
 
 void Viaja(int instante, struct mundo *M, int H, int B, struct fprio_t *LEF);
 
-void Morre(int instante, struct mundo *M, int H, int B, struct fprio_t *LEF);
+void Morre(int instante, struct mundo *M, int H, int B, int missao, struct fprio_t *LEF);
 
 void Missao(int instante, struct mundo *M, int id_missao, struct fprio_t *LEF);
 
-void Fim(struct mundo *M);
+void Fim(int instante, struct mundo *M);
