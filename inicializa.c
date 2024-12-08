@@ -11,6 +11,7 @@ void iniciarMundo(struct mundo *mundo_ini){
     mundo_ini->N_herois = N_HEROIS;
     mundo_ini->N_bases = N_BASES;
     mundo_ini->N_missoes = N_MISSOES;
+    mundo_ini->ev_trat = 0;
 }
 
 void iniciarHabilidade(struct s_heroi* heroi, int numHabilidades){

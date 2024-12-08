@@ -74,7 +74,7 @@ void Desiste(int instante, struct mundo *M, int H, int B, struct fprio_t *LEF){
   if(M->herois[H].morto == true){
     return;
   }
-  int destino = aleat(0,N_BASES);
+  int destino = aleat(0,N_BASES-1);
   while(destino == M->bases[B].ID){
     destino = aleat(0,N_BASES);
   }
@@ -104,9 +104,10 @@ void Entra(int instante, struct mundo *M, int H, int B, struct fprio_t *LEF){
     return;
   }
   int PTB = 15 + (M->herois[H].paciencia * aleat(1,20));
+  cjto_insere(M->bases[B].presentes,M->herois[H].ID);
   M->bases[B].habilidades = cjto_uniao(M->bases[B].habilidades,M->herois[H].habilidade);
   printf("%6d: ENTRA  HEROI %2d BASE ", instante,  M->herois[H].ID);
-  printf("%2d (%2d/", M->bases[B].ID, cjto_card(M->bases[B].presentes));
+  printf("%d (%2d/", M->bases[B].ID, cjto_card(M->bases[B].presentes));
   printf("%2d) SAI %d\n", M->bases[B].lotação, (instante + PTB));
   agendarevento(LEF, SAI, instante + PTB, M->herois[H].ID, M->bases[B].ID, -1);
 }
@@ -115,14 +116,14 @@ void Sai(int instante, struct mundo *M, int H, int B, struct fprio_t *LEF){
   if(M->herois[H].morto == true){
     return;
   }
-  cjto_retira(M->bases[B].presentes, M->herois[H].ID);
-  int destino = aleat(0,N_BASES);
+  int destino = aleat(0,N_BASES-1);
   M->bases[B].habilidades = cjto_dif(M->bases[B].habilidades, M->herois[H].habilidade);
   printf("%6d: SAI    HEROI %2d BASE ", instante, M->herois[H].ID);
   printf("%d (%2d/", M->bases[B].ID, cjto_card(M->bases[B].presentes));
   printf("%2d)\n", M->bases[B].lotação);
   agendarevento(LEF, VIAJA, instante, M->herois[H].ID, destino, -1);
   agendarevento(LEF, AVISA, instante, M->herois[H].ID, M->bases[B].ID, -1);
+  cjto_retira(M->bases[B].presentes, M->herois[H].ID);
 }
 
 int DistanciaCart(int atualx, int atualy, int destx, int desty){
@@ -162,6 +163,7 @@ void Missao(int instante, struct mundo *M, int id_missao, struct fprio_t *LEF){
   int BMP = -1;
   int menordist = N_TAMANHO_MUNDO * N_TAMANHO_MUNDO;
   for(int i = 0; i < N_BASES; i++){
+    
     int contem = cjto_contem(M->bases[i].habilidades,M->missoes[i].habilidades);
 
     if(contem){
@@ -205,21 +207,7 @@ void Missao(int instante, struct mundo *M, int id_missao, struct fprio_t *LEF){
 }
 
 void Fim(int tempo, struct mundo *M){
-  for(int i = 0; i < N_BASES; i++){
-    cjto_destroi(M->bases[i].presentes);
-    cjto_destroi(M->bases[i].habilidades);
-    lista_destroi(M->bases[i].espera);
-  }
-  for(int i = 0; i < N_HEROIS; i++){
-    cjto_destroi(M->herois[i].habilidade);
-  }
-  for(int i = 0; i < N_MISSOES; i++){
-    cjto_destroi(M->missoes[i].habilidades);
-  }
-  free(M->bases);
-  free(M->herois);
-  free(M->missoes);
-  free(M);
+
 
   for(int i = 0; i < N_HEROIS; i++){
     if(M->herois[i].morto == false){
@@ -241,8 +229,25 @@ void Fim(int tempo, struct mundo *M){
   for(int i = 0; i < N_BASES; i++){
     printf("BASE %2d LOT %2d ", M->bases[i].ID, M->bases->lotação); 
     printf("FILA MAX %2d ", M->bases[i].espera->tamanho);
-    printf("MISSOES %d\n", M->missoes[i].ID);
+    printf("MISSOES %d\n", M->bases[i].n_missao);
   }
   printf("EVENTOS TRATADOS: %d\n", M->ev_trat);
   printf("TEMPO %d\n", tempo);
+
+
+    for(int i = 0; i < N_BASES; i++){
+    cjto_destroi(M->bases[i].presentes);
+    cjto_destroi(M->bases[i].habilidades);
+    lista_destroi(M->bases[i].espera);
+  }
+  for(int i = 0; i < N_HEROIS; i++){
+    cjto_destroi(M->herois[i].habilidade);
+  }
+  for(int i = 0; i < N_MISSOES; i++){
+    cjto_destroi(M->missoes[i].habilidades);
+  }
+  free(M->bases);
+  free(M->herois);
+  free(M->missoes);
+  free(M);
 }

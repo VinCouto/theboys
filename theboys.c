@@ -48,60 +48,70 @@ int main (){
   //eventos iniciais
   printf("dps de td parabens vc n é tao burro");
   // executar o laço de simulação
-  while(mundo->Relogio <= T_FIM_DO_MUNDO){
+  while(tempo < T_FIM_DO_MUNDO){
     evento = fprio_retira(LEF,&tipo,&tempo);
 
-    mundo->ev_trat++;
     switch (tipo){
       
       case CHEGA:
+       mundo->ev_trat++;
         Chega(tempo,mundo,evento->heroi_ID,evento->base_ID,LEF);
         break;
       
       case ESPERA:
+       mundo->ev_trat++;
         Espera(tempo,mundo,evento->heroi_ID,evento->base_ID,LEF);
         break;
       
       case DESISTE:
+       mundo->ev_trat++;
         Desiste(tempo,mundo,evento->heroi_ID,evento->base_ID,LEF);
         break;
 
       case AVISA:
+       mundo->ev_trat++;
         Avisa(tempo, mundo, evento->base_ID,LEF);
         break;
 
       case ENTRA:
+       mundo->ev_trat++;
         Entra(tempo, mundo, evento->heroi_ID, evento->base_ID, LEF);
         break;
 
       case SAI:
+       mundo->ev_trat++;
         Sai(tempo, mundo, evento->heroi_ID, evento->base_ID, LEF);
         break;
 
       case VIAJA:
+       mundo->ev_trat++;
         Viaja(tempo, mundo, evento->heroi_ID, evento->base_ID, LEF);
         break;
 
       case MORRE:
+       mundo->ev_trat++;
         Morre(tempo, mundo, evento->heroi_ID, evento->base_ID, 
         evento->missao_ID,LEF);
         break;
 
       case MISSAO:
+       mundo->ev_trat++;
         break;
 
       case FIM:
+       mundo->ev_trat++;
         Fim(tempo, mundo);
         break;
 
       default:
         break;
     }
-    mundo->Relogio++;
     free(evento);
   }
 
   // destruir o mundo
+  
+  fprio_destroi(LEF);
   return (0);
 }
 

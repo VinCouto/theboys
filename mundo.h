@@ -6,7 +6,7 @@
 #include "conjunto.h"
 
 #define T_INICIO 0
-#define T_FIM_DO_MUNDO 525600/1000
+#define T_FIM_DO_MUNDO 525600/800
 #define N_TAMANHO_MUNDO 20000
 #define N_HABILIDADES 10
 #define N_HEROIS (N_HABILIDADES * 5)
