@@ -12,6 +12,10 @@ void iniciarMundo(struct mundo *mundo_ini){
     mundo_ini->N_bases = N_BASES;
     mundo_ini->N_missoes = N_MISSOES;
     mundo_ini->ev_trat = 0;
+    mundo_ini->miss_cumpr = 0;
+    mundo_ini->min_miss = 1;
+    mundo_ini->max_miss = 1;
+    mundo_ini->num_mortos = 0;
 }
 
 void iniciarHabilidade(struct s_heroi* heroi, int numHabilidades){
@@ -25,15 +29,9 @@ void iniciarHabilidade(struct s_heroi* heroi, int numHabilidades){
     }
 }
 
-void iniciarHabilidadeMissao(struct missao* missao, int numHabilidades){
-    missao->habilidades = cjto_cria(numHabilidades);
-    if(missao->habilidades == NULL)
-      return;
-    int i = aleat(1,3);
-    for(int j = 0; j < i; j++){
-      int hab_aleat = aleat(0,numHabilidades);
-      cjto_insere(missao->habilidades,hab_aleat);
-    }
+void iniciarHabilidadeMissao(struct missao* missao){
+    int i = aleat(6,10);
+    missao->habilidades = cjto_aleat(i,N_HABILIDADES);
 }
 
 struct s_heroi *iniciarHerois(struct mundo * mundo_ini){
@@ -62,10 +60,11 @@ struct base *iniciarBase(struct mundo *mundo_ini){
     mundo_ini->bases[i].localx = aleat(0,mundo_ini->Tam_Mundox-1);
     mundo_ini->bases[i].localy = aleat(0,mundo_ini->Tam_Mundoy-1);
     mundo_ini->bases[i].lotação = aleat(3,10);
-    mundo_ini->bases[i].presentes = cjto_cria(mundo_ini->bases[i].lotação);
+    mundo_ini->bases[i].presentes = cjto_cria(N_HEROIS);
     mundo_ini->bases[i].espera = lista_cria();
-    mundo_ini->bases[i].habilidades = cjto_cria(30);
+    mundo_ini->bases[i].habilidades = cjto_cria(N_HABILIDADES);
     mundo_ini->bases[i].n_missao = 0;
+    mundo_ini->bases[i].tam_max = 0;
   }
   return mundo_ini->bases;
 }
@@ -78,9 +77,9 @@ struct missao *iniciarMissao(struct mundo *mundo_ini){
     mundo_ini->missoes[i].ID = i;
     mundo_ini->missoes[i].localx = aleat(0,mundo_ini->Tam_Mundox-1);
     mundo_ini->missoes[i].localy = aleat(0,mundo_ini->Tam_Mundoy-1);
-    iniciarHabilidadeMissao(&mundo_ini->missoes[i], mundo_ini->N_missoes);
+    iniciarHabilidadeMissao(&mundo_ini->missoes[i]);
     mundo_ini->missoes[i].N_perigo = aleat(0,100);
-    mundo_ini->missoes->tent = 0;
+    mundo_ini->missoes[i].tent = 1;
   }
   return mundo_ini->missoes;
 }

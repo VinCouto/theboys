@@ -6,7 +6,7 @@
 #include "conjunto.h"
 
 #define T_INICIO 0
-#define T_FIM_DO_MUNDO 525600/800
+#define T_FIM_DO_MUNDO 525600
 #define N_TAMANHO_MUNDO 20000
 #define N_HABILIDADES 10
 #define N_HEROIS (N_HABILIDADES * 5)
@@ -53,6 +53,7 @@ struct base{
   int localx;
   int localy;
   int n_missao;
+  int tam_max;
   struct cjto_t *habilidades;
 };
 
@@ -77,6 +78,10 @@ struct mundo{
   int Tam_Mundoy;
   int Relogio;
   int ev_trat;
+  int miss_cumpr;
+  int min_miss;
+  int max_miss;
+  int num_mortos;
 };
 
 int aleat (int min, int max);
@@ -85,7 +90,7 @@ void iniciarMundo(struct mundo *mundo_ini);
 
 void iniciarHabilidade(struct s_heroi* heroi, int numHabilidades);
 
-void iniciarHabilidadeMissao(struct missao* missao, int numHabilidades);
+void iniciarHabilidadeMissao(struct missao* missao);
 
 struct s_heroi *iniciarHerois(struct mundo * mundo_ini);
 

@@ -12,18 +12,21 @@ struct fprio_t *fprio_cria (){
     return f;
 }
 struct fprio_t *fprio_destroi (struct fprio_t *f){
-    if(f == NULL)
+    if(f == NULL){
+        free(f);
         return NULL;
+    }
     struct fpnodo_t *aux;
     while (f->prim != NULL){
+        free(f->prim->item);
         aux = f->prim;
         f->prim = f->prim->prox;
         free (aux);
-        aux = NULL;
     }
     free(f);
     return NULL;
 }
+
 
 
 int fprio_insere (struct fprio_t *f, void *item, int tipo, int prio){

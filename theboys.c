@@ -34,75 +34,66 @@ int main (){
   printf("INICIALIZOU MISSAO\n");
   struct fprio_t *LEF = fprio_cria();
   printf("CRIOU FILA\n");
+  printf("BASE 0 ID = %d\n", mundo->bases[0].ID);
+  printf("BASE 0 CAP = %d\n", mundo->bases[0].lotação);
+  printf("BASE 0 local x %d y %d\n", mundo->bases[0].localx, mundo->bases[0].localy);
   
-
-  int tempo;
+  int continua = 1;
+  int tempo = 0;
   int tipo;
   struct evento *evento;
-  evento = malloc(sizeof(struct evento));
-  if(evento == NULL)
-    return 0;
   ev_ini_herois(mundo->herois,LEF);
+  ev_ini_missoes(mundo->missoes,LEF);
   ev_fim_do_mundo(LEF);
 
   //eventos iniciais
   printf("dps de td parabens vc n é tao burro");
   // executar o laço de simulação
-  while(tempo < T_FIM_DO_MUNDO){
+  while(continua != 0){
     evento = fprio_retira(LEF,&tipo,&tempo);
 
     switch (tipo){
-      
       case CHEGA:
-       mundo->ev_trat++;
         Chega(tempo,mundo,evento->heroi_ID,evento->base_ID,LEF);
         break;
       
       case ESPERA:
-       mundo->ev_trat++;
         Espera(tempo,mundo,evento->heroi_ID,evento->base_ID,LEF);
         break;
       
       case DESISTE:
-       mundo->ev_trat++;
         Desiste(tempo,mundo,evento->heroi_ID,evento->base_ID,LEF);
         break;
 
       case AVISA:
-       mundo->ev_trat++;
         Avisa(tempo, mundo, evento->base_ID,LEF);
         break;
 
       case ENTRA:
-       mundo->ev_trat++;
         Entra(tempo, mundo, evento->heroi_ID, evento->base_ID, LEF);
         break;
 
       case SAI:
-       mundo->ev_trat++;
         Sai(tempo, mundo, evento->heroi_ID, evento->base_ID, LEF);
         break;
 
       case VIAJA:
-       mundo->ev_trat++;
         Viaja(tempo, mundo, evento->heroi_ID, evento->base_ID, LEF);
         break;
 
       case MORRE:
-       mundo->ev_trat++;
         Morre(tempo, mundo, evento->heroi_ID, evento->base_ID, 
         evento->missao_ID,LEF);
         break;
 
       case MISSAO:
-       mundo->ev_trat++;
+        Missao(tempo, mundo, evento->missao_ID, LEF);
         break;
 
       case FIM:
-       mundo->ev_trat++;
+        continua = 0;
         Fim(tempo, mundo);
         break;
-
       default:
         break;
     }
@@ -110,7 +101,6 @@ int main (){
   }
 
   // destruir o mundo
-  
   fprio_destroi(LEF);
   return (0);
 }
